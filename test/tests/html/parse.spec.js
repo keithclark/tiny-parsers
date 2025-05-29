@@ -60,4 +60,17 @@ import {
     `<${tag}> should only contain a single text node`
   );
 
+  assert.deepStrictEqual(
+    parse(`<${tag}>&x;</${tag}>`),
+    [{
+      type: NODE_TYPE_ELEMENT,
+      name: tag,
+      attributes: {},
+      children: [{
+        type: NODE_TYPE_TEXT,
+        value: `&x;`
+      }]
+    }],
+    `<${tag}> contents should not be entity decoded`
+  );
 });

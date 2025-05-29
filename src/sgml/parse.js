@@ -1,4 +1,4 @@
-import { ensureEmpty, getUnusedChars, throwInputError } from '../utils.js';
+import { getUnusedChars, throwInputError } from '../utils.js';
 import { decode } from './entities.js';
 
 import {
@@ -54,8 +54,8 @@ export default (sgmlText, options = {}) => {
   const stack = [];
   const { 
     namedEntityMap,
-    textElements,
-    voidElements
+    textElements = [],
+    voidElements = []
   } = options;
 
   const [blockPrefix, blockSuffix] = getUnusedChars(sgmlText, 2);
@@ -133,7 +133,14 @@ export default (sgmlText, options = {}) => {
    * @returns {string} The element placeholder
    */
   const blockElementReplacer = (_, name, attributes, content) => {
-    const node = createElement(name, {}, resolveChildNodes(content));
+    let children;
+    if (textElements.includes(name)) {
+      children = [createText(content)] ;
+    } else {
+      children = resolveChildNodes(content);
+    }
+
+    const node = createElement(name, {}, children);
     attributes?.replace(RE_ATTR, (_, name, value) => {
       node.attributes[name] = decode(value ?? name, namedEntityMap);
     });
@@ -156,15 +163,18 @@ export default (sgmlText, options = {}) => {
   // can contain unescaped strings. The regex used here matches both text-only 
   // elements and comments. This is to address the chicken/egg scenairo, where 
   // one can contain the other.
-  if (textElements) {
+  if (textElements.length) {
     const RE_TEXT_ELEMENTS = new RegExp(`(?:<(${textElements.join('|')})(\\s[^>]*)?>(.*?)<\\/\\1\s*>)|(?:<!--(.*?)-->)`, 'gs');
     sgmlText = sgmlText.replace(RE_TEXT_ELEMENTS, textElementReplacer);
   } else {
     sgmlText = sgmlText.replace(/<!--(.*?)-->/gs, commentReplacer);
   }
 
+  // Remove the doctype if we have one
+  sgmlText = sgmlText.replace(RE_DOCTYPE, doctypeReplacer);
+
   // Now remove all void tags as they will be the bottom-most nodes.
-  if (voidElements) {
+  if (voidElements.length) {
     const RE_VOID_ELEMENTS = new RegExp(`<(${voidElements.join('|')})(\\s[^>]*)?>`, 'g');
     sgmlText = sgmlText.replace(RE_VOID_ELEMENTS, voidElementReplacer);
   }

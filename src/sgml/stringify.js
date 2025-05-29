@@ -23,7 +23,8 @@ import {
 const stringifyNode = (node, options = {}) => {
 
   const {
-    voidElements = []
+    voidElements = [],
+    textElements = []
   } = options;
 
   /**
@@ -61,7 +62,14 @@ const stringifyNode = (node, options = {}) => {
     
       // If this node isn't a void element then we must stringify its children
       if (!(voidElements.includes(node.name))) {
-        output.push(...node.children?.map(stringifyNode));
+        let transformer;
+        // If this is a text-only node then dump the raw
+        if (textElements.includes(node.name)) {
+          transformer = (node) => node.value;
+        } else {
+          transformer = toString;
+        }
+        output.push(...node.children?.map(transformer));
         output.push(`</${node.name}>`);
       }
       return output.join('');
