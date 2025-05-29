@@ -3,7 +3,8 @@ import { encode } from './entities.js';
 import {
   NODE_TYPE_ELEMENT,
   NODE_TYPE_TEXT,
-  NODE_TYPE_COMMENT
+  NODE_TYPE_COMMENT,
+  NODE_TYPE_DOCTYPE
 } from './node.js';
 
 /**
@@ -40,6 +41,16 @@ const stringifyNode = (node, options = {}) => {
       return `<!--${value}-->`;
     } 
     
+    // Comments
+    if (type === NODE_TYPE_DOCTYPE) {
+      const { name, legacyString } = node;
+      let text = name;
+      if (legacyString) {
+        text += ` ${legacyString}`
+      }
+      return `<!doctype ${text}>`;
+    } 
+
     // Text character data
     if (type === NODE_TYPE_TEXT) {
       return encode(value);

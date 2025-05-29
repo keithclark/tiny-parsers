@@ -1,11 +1,13 @@
 export const NODE_TYPE_ELEMENT = 1;
 export const NODE_TYPE_TEXT = 2;
 export const NODE_TYPE_COMMENT = 3;
+export const NODE_TYPE_DOCTYPE = 4;
 
 /**
  * @typedef {import("./types.js").NodeList} NodeList
  * @typedef {import("./types.js").AttributeList} AttributeList
  * @typedef {import("./types.js").Element} Element
+ * @typedef {import("./types.js").Doctype} Doctype
  */
 
 /**
@@ -53,3 +55,17 @@ export const createComment = (value = '') => {
   }
 };
 
+
+/**
+ * Creates a new comment node with the suppiled value
+ * 
+ * @param {string} text The comment content
+ * @returns {Doctype}
+ */
+export const createDoctype = (name = '', legacyString = '') => {
+  return {
+    type: NODE_TYPE_DOCTYPE,
+    name,
+    legacyString
+  }
+};

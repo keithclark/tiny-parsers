@@ -4,13 +4,16 @@ import { decode } from './entities.js';
 import {
   createElement,
   createText,
-  createComment
+  createComment,
+  createDoctype
 } from './node.js';
 
 /** @typedef {import("./types.js").Node} Node */
 /** @typedef {import("./types.js").Element} Element */
 /** @typedef {import("./types.js").NodeList} NodeList */
 /** @typedef {import("./types.js").ParseOptions} ParseOptions */
+
+const RE_DOCTYPE = /<!doctype\s+([^\s>]+)\s*(.*?)>/gi;
 
 // All other elements: `<TAG ...>....</TAG>`
 const RE_CONTAINER_ELEMENTS = /<([a-z][\w-]*)(\s[^>]*)?>([^<]*)<\/\1\s*>/g;
@@ -156,6 +159,17 @@ export default (sgmlText, options = {}) => {
    */
   const voidElementReplacer = (_, name, attributes) => {
     return blockElementReplacer(_, name, attributes, '');
+  };
+
+
+  /**
+   * @param {string} _ 
+   * @param {string} name The element name
+   * @param {string} attributes The raw attribute string
+   * @returns {string} The element placeholder
+   */
+  const doctypeReplacer = (_, name, legacyString) => {
+    return placeholder(createDoctype(name, legacyString));
   };
 
 

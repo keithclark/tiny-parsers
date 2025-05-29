@@ -6,7 +6,8 @@ export {
   stringify as stringifySgml,
   NODE_TYPE_COMMENT,
   NODE_TYPE_ELEMENT,
-  NODE_TYPE_TEXT
+  NODE_TYPE_TEXT,
+  NODE_TYPE_DOCTYPE
 } from './sgml/main.js';
 
 

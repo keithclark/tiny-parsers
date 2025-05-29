@@ -4,26 +4,9 @@ import {
   NODE_TYPE_COMMENT,
   NODE_TYPE_ELEMENT,
   NODE_TYPE_TEXT,
+  NODE_TYPE_DOCTYPE,
   parseSgml as parse
 } from '../../../src/main.js';
-
-
-/* Doctype (not implemented yet)
------------------------------------------------------------------------------ */
-/*
-assert.deepStrictEqual(
-  parse('<!doctype html>'), []
-);
-
-assert.deepStrictEqual(
-  parse('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">'), []
-);
-
-assert.deepStrictEqual(
-  parse(`<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">`), []
-);
-*/
 
 
 /* Text
@@ -36,6 +19,39 @@ assert.deepStrictEqual(
   }],
   'Text-only content is valid SGML'
 );
+
+
+/* <!DOCTYPE>
+----------------------------------------------------------------------------- */
+
+assert.deepStrictEqual(
+  parse('<!doctype html>'), [{
+    type: NODE_TYPE_DOCTYPE,
+    name: 'html',
+    legacyString: '',
+  }],
+  'Doctypes using modern format should parse'
+);
+
+assert.deepStrictEqual(
+  parse('<!doctype  html   >'), [{
+    type: NODE_TYPE_DOCTYPE,
+    name: 'html',
+    legacyString: '',
+  }],
+  'Doctypes contaning additional whitespace should parse'
+);
+
+assert.deepStrictEqual(
+  parse('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">'), [{
+    type: NODE_TYPE_DOCTYPE,
+    name: 'HTML',
+    legacyString: 'PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd"',
+  }],
+  'Doctypes in legacy formate should parse'
+);
+
+
 
 
 /* Void elements

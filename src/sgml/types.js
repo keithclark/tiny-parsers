@@ -20,7 +20,14 @@
  */
 
 /**
- * @typedef {Element|Text|Comment} Node
+ * @typedef {Object} Doctype
+ * @property {4} type
+ * @property {string} name The document type name
+ * @property {string} legacyString unparsed legacy information
+ */
+
+/**
+ * @typedef {Element|Text|Comment|Doctype} Node
  */
 
 /**
