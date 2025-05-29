@@ -52,7 +52,8 @@ export default (text) => {
   }
 
   const parseAtRule = (scope, rules = null) => {
-    const pos = scope.search(/\s+/, 2);
+    scope = normalise(scope);
+    const pos = scope.indexOf(' ');
     const identifier = pos > -1 ? scope.slice(0, pos) : scope;
     const bob = pos > -1 ? restoreInline(scope.slice(pos).trim()) : '';
     if (rules) {
