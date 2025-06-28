@@ -78,7 +78,7 @@ export default new Proxy(assert, {
       try {
         const t = performance.now();
         target[prop](...args);
-        console.log(`‧ \x1b[32m${message.padEnd(80,' ')} \x1b[30m(${(performance.now()-t).toFixed(3)}ms)\x1b[0m`);
+        console.log(`‧ \x1b[32m${message.padEnd(85,' ')} \x1b[30m(${(performance.now()-t).toFixed(3)}ms)\x1b[0m`);
         results.passes++;
       } catch (e) {
         console.log(`‧ \x1b[31m${message}`);

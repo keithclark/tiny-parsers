@@ -33,7 +33,16 @@ export const throwInputError = () => {
 };
 
 
-// Collapses blocks of concurrent whitespace into a single character
-export const normaliseWhitespace = (text) => {
+/**
+ * Collapses runs of concurrent whitespace into a single character. Does 
+ * not trim the start and end of output.
+ * 
+ * @param {string} text The stext string to normalise
+ * @param {string} [char=' '] The character to replace whitespace with. Defaults to a space.
+ * @example
+ * normaliseWhitespace('   ')                 // ' '
+ * normaliseWhitepsace(' 1  ,    2   , 3  ')    // ' 1 , 2 , 3 '
+ */
+export const normaliseWhitespace = (text, char = ' ') => {
   return text.replace(/\s+/g, ' ');
 };

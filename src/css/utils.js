@@ -9,16 +9,12 @@ export const containsQuoteChar = (text) => {
   return text.includes('"') || text.includes("'");
 };
 
+export const isParenthetical = (text) => {
+  return text.startsWith('(') && text.endsWith(')');
+}
 
-/**
- * Reduces concurrent whitespace to a single space character and removes 
- * optional whitespace after commas.
- * 
- * @param {string} text 
- * @returns {string}
- */
-export const normalise = (text) => {
-  text = normaliseWhitespace(text);
-  text = text.replace(/, /g,',');
-  return text;
-};
+export const isString = (text) => {
+  return (text.startsWith('"') && text.endsWith('"')) ||
+  (text.startsWith("'") && text.endsWith("'"))
+}
+
