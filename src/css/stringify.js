@@ -41,7 +41,7 @@ const stringifyAtRule = (atRule) => {
  */
 const stringifyRule = (rule) => {
   if (rule.type === RULE_TYPE_RULESET) {
-    return `${rule.selector}{${stringifyDeclarations(rule.declarations)}}`
+    return `${rule.selectors}{${stringifyDeclarations(rule.declarations)}}`
   }
   if (rule.type === RULE_TYPE_AT_RULE_STATEMENT) {
     return `@${rule.identifier} ${rule.rule}`
@@ -50,7 +50,7 @@ const stringifyRule = (rule) => {
     return `${stringifyAtRule(rule)}{${stringifyDeclarations(rule.declarations)}}`;
   }
   if (rule.type === RULE_TYPE_DECLARATION) {
-    return `${rule.property}:${rule.value}`
+    return `${rule.property}:${rule.value}${rule.important ? '!important' : ''}`
   }  
 };
 

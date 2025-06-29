@@ -3,8 +3,9 @@
   "version": "0.0.1",
   "module": "./dist/main.js",
   "main": "./dist/main.js",
+  "types": "./dist/main.d.ts",
   "files": [
-    "./dist/main.js"
+    "./dist"
   ],
   "type": "module",
   "scripts": {
