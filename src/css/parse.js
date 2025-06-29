@@ -1,6 +1,19 @@
-import { getUnusedChars, ensureEmpty, throwInputError, normaliseWhitespace } from '../utils.js';
-import { createAtRuleBlock, createRuleset, createDeclaration, createAtRuleStatement } from './rule.js';
-import { containsQuoteChar, isParenthetical, isString } from './utils.js';
+import {
+  getUnusedChars,
+  ensureEmpty,
+  throwInputError,
+  normaliseWhitespace,
+  containsQuoteChar,
+  isParenthetical,
+  isString
+} from '../utils.js';
+
+import {
+  createAtRuleBlock,
+  createRuleset,
+  createDeclaration,
+  createAtRuleStatement
+} from './rule.js';
 
 /** Matches CSS comments, string literals and unquoted CSS functions. */
 const RE_PARSER_UNSAFE = /(\/\*(?:[\w\W]*?)\*\/)|(?:(["'])(?:\\.|(?!\2)[^\\\r\n])*\2)|(\((?:\\.|[^()"'])*?\))/g;
@@ -17,7 +30,7 @@ export default (text) => {
   const [blockPrefix, blockSuffix, inlinePrefix, inlineSuffix] = getUnusedChars(text, 4);
 
   const RE_BLOCK_DELIM = new RegExp(`${blockPrefix}(\\d+)${blockSuffix}`, 'g');
-  const RE_INLINE_DELIM = new RegExp(`${inlinePrefix}(\\d+)${inlineSuffix}`, 'g');  
+  const RE_INLINE_DELIM = new RegExp(`${inlinePrefix}(\\d+)${inlineSuffix}`, 'g');
   const RE_DECLARATION_BLOCK = new RegExp(`(?<=^|[;{}${blockPrefix}${blockSuffix}])\\s*([^;{}${blockPrefix}${blockSuffix}]+?)\\s*\\{([^{]*?)\\}`, 'g');
 
   const blockStack = [];
@@ -86,7 +99,7 @@ export default (text) => {
     const pos = scope.indexOf(' ');
     let identifier = scope;
     let clause = '';
-    
+
     if (pos > -1) {
       identifier = scope.slice(0, pos)
       clause = restoreInline(scope.slice(pos).trim());
@@ -144,10 +157,10 @@ export default (text) => {
   const parseParenthetical = (content) => {
     content = normaliseWhitespace(content);
     content = content.replace(/ ?([,() ]) ?/g, '$1');
-  //content = content.replace(/ ?([,()*/ ]) ?/g, '$1'); < allow `calc(2 * 1px)` to collapse
+    //content = content.replace(/ ?([,()*/ ]) ?/g, '$1'); < allow `calc(2 * 1px)` to collapse
     return restoreInline(content);
   }
-  
+
   /**
    * 
    * @param {string} scope 
@@ -169,7 +182,7 @@ export default (text) => {
             rules.push(parseDeclaration(name, value));
             return '';
           })
-        ); 
+        );
       }
     });
 
@@ -190,7 +203,7 @@ export default (text) => {
 
   // Temporarily remove unsafe content that could catch out the regexs used to
   // parse content, such as comment blocks or strings.
-  while(RE_PARSER_UNSAFE.test(text)) {
+  while (RE_PARSER_UNSAFE.test(text)) {
     text = text.replace(RE_PARSER_UNSAFE, (content) => {
       if (isParenthetical(content)) {
         return storeInline(parseParenthetical(content));
