@@ -1,0 +1,25 @@
+{
+  "name": "@keithclark/tiny-parsers",
+  "version": "0.0.1",
+  "module": "./dist/main.js",
+  "main": "./dist/main.js",
+  "types": "./dist/main.d.ts",
+  "files": [
+    "./dist"
+  ],
+  "type": "module",
+  "scripts": {
+    "dev": "rollup -c -w",
+    "build": "rollup -c",
+    "test": "node test",
+    "test:css": "node test tests/css",
+    "test:html": "node test tests/html",
+    "test:sgml": "node test tests/sgml"
+  },
+  "author": "Keith Clark",
+  "license": "MIT",
+  "description": "",
+  "devDependencies": {
+    "@rollup/plugin-terser": "^0.4.4"
+  }
+}
