@@ -52,8 +52,6 @@ assert.deepStrictEqual(
 );
 
 
-
-
 /* Void elements
 ----------------------------------------------------------------------------- */
 
@@ -87,16 +85,6 @@ assert.deepStrictEqual(
 );
 
 
-assert.deepStrictEqual(
-  parse('<void />', { voidElements: ['void'] }), [{
-    type: NODE_TYPE_ELEMENT,
-    name: 'void',
-    attributes: {},
-    children: []
-  }],
-  'Void elements can also be self-closing'
-);
-
 /* Block elements
 ----------------------------------------------------------------------------- */
 
@@ -107,8 +95,31 @@ assert.deepStrictEqual(
     attributes: {},
     children: []
   }],
-  'Empty block elements parse correctly'
+  'Block Elements: Empty block elements parse correctly'
 );
+
+
+[
+  '<element></element>',
+  "<element ></element>",
+  "<element\t></element>",
+  "<element   ></element>",
+  "<element\t\t></element>",
+  "<element\n></element>",
+  "<element\n\n></element>",
+  "<element\n \n \t\n></element>",
+].forEach((testCase) => {
+  assert.deepStrictEqual(
+    parse(testCase), [{
+      type: NODE_TYPE_ELEMENT,
+      name: 'element',
+      attributes: {},
+      children: []
+    }],
+    'Block Elements: Bare element trailing whitespace is valid'
+  );
+});
+
 
 assert.deepStrictEqual(
   parse('<div>Test</div>'), [
@@ -122,7 +133,7 @@ assert.deepStrictEqual(
       }]
     }
   ],
-  'Block elements with child nodes parse correctly'
+  'Block Elements: Child nodes parse correctly'
 );
 
 assert.deepStrictEqual(
@@ -150,7 +161,55 @@ assert.deepStrictEqual(
       }
     ]
   }],
-  'Nested elements parse correctly'
+  'Block Elements: Nested elements parse correctly'
+);
+
+
+/* Self-closing elements
+----------------------------------------------------------------------------- */
+
+assert.deepStrictEqual(
+  parse('<div />'), [{
+    type: NODE_TYPE_ELEMENT,
+    name: 'div',
+    attributes: {},
+    children: []
+  }],
+  'Self-closing Elements: Empty elements parse correctly'
+);
+
+
+[
+  '<element/>',
+  "<element />",
+  "<element\t/>",
+  "<element   />",
+  "<element\t\t/>",
+  "<element\n/>",
+  "<element\n\n/>",
+  "<element\n \n \t\n/>",
+].forEach((testCase) => {
+  assert.deepStrictEqual(
+    parse(testCase), [{
+      type: NODE_TYPE_ELEMENT,
+      name: 'element',
+      attributes: {},
+      children: []
+    }],
+    'Self-closing Elements: Bare element trailing whitespace is valid'
+  );
+});
+
+assert.deepStrictEqual(
+  parse('<element url="https://"/>'), [{
+    type: NODE_TYPE_ELEMENT,
+    name: 'element',
+    attributes: {
+      url: 'https://'
+    },
+    children: []
+  }],
+  'Self-closing Elements: with attributes including `/` should parse'
 );
 
 

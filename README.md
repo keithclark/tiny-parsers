@@ -26,7 +26,6 @@ console.log(stringityHtml(tree));
 Notes:
 
 * Does not support optional closing elements. `<p>para1<p>para2` will fail.
-* Does not support self-closing content elements. `<option />` will fail.
 
 
 ### Example:

@@ -16,7 +16,10 @@ import {
 const RE_DOCTYPE = /<!doctype\s+([^\s>]+)\s*(.*?)>/gi;
 
 // All other elements: `<TAG ...>....</TAG>`
-const RE_CONTAINER_ELEMENTS = /<([a-z][\w-]*)(\s[^>]*)?>([^<]*)<\/\1\s*>/g;
+const RE_CONTAINER_ELEMENTS = /<([a-z][:\w-]*)(\s[^>]*)?>([^<]*)<\/\1\s*>/gi;
+
+// Self-closing elements `<TAG .../>`
+const RE_SELF_CLOSING_ELEMENTS = /<([a-z][:\w-]*)(\s[^>]*)?\s*\/>/gi;
 
 // Attributes. Matches `name`, `name=value`, `name="value"`, `name='value'`, `x:name`, `data-prop-name`
 const RE_ATTR = /([A-Za-z_:][\w:.-]*)(?:=(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?/g;
@@ -207,7 +210,11 @@ export default (sgmlText, options = {}) => {
   // Remove the doctype if we have one
   sgmlText = sgmlText.replace(RE_DOCTYPE, doctypeReplacer);
 
-  // Now remove all void tags as they will be the bottom-most nodes.
+  // Now remove all self-closing tags as they will be the bottom-most nodes.
+  // Do this BEFORE trying to remove void elements.
+  sgmlText = sgmlText.replace(RE_SELF_CLOSING_ELEMENTS, voidElementReplacer);
+
+  // Now remove all void tags as they will be the next bottom-most nodes.
   if (voidElements.length) {
     const RE_VOID_ELEMENTS = new RegExp(`<(${voidElements.join('|')})(\\s[^>]*)?>`, 'g');
     sgmlText = sgmlText.replace(RE_VOID_ELEMENTS, voidElementReplacer);
