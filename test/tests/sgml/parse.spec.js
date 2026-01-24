@@ -195,17 +195,106 @@ assert.deepStrictEqual(
     children: []
   }],
   'Empty block elements with attributes parse correctly'
-)
+);
+
+
+
+[
+  '<element id="test" ></element>',
+  '<element  id="test"  ></element>',
+  '<element\nid="test"\n></element>',
+  '<element\n\nid="test"\n\n></element>',
+  '<element\tid="test"\t></element>',
+  '<element\t\tid="test"\t\t></element>'
+].forEach((testCase) => {
+  assert.deepStrictEqual(
+    parse(testCase), [{
+      type: NODE_TYPE_ELEMENT,
+      name: 'element',
+      attributes: { id: 'test' },
+      children: []
+    }],
+    'Attributes: Whitespace around attributes should be ignored'
+  );
+});
+
+
+[
+  '<element id="test" name="test" ></element>',
+  '<element  id="test"  name="test"  ></element>',
+  '<element\nid="test"\nname="test"\n></element>',
+  '<element\n\nid="test"\n\nname="test"\n\n></element>',
+  '<element\tid="test"\tname="test"\t></element>',
+  '<element\t\tid="test"\t\tname="test"\t\t></element>',
+].forEach((testCase) => {
+  assert.deepStrictEqual(
+    parse(testCase), [{
+      type: NODE_TYPE_ELEMENT,
+      name: 'element',
+      attributes: { id: 'test', name: 'test' },
+      children: []
+    }],
+    'Attributes: Whitespace around attributes should be ignored'
+  );
+});
+
+
+[
+  '<div id=""></div>',
+  "<div id=''></div>"
+].forEach((testCase) => {
+  assert.deepStrictEqual(
+    parse(testCase), [{
+      type: NODE_TYPE_ELEMENT,
+      name: 'div',
+      attributes: { id: "" },
+      children: []
+    }],
+    'Attributes: Single or double quoted values are valid'
+  )
+});
 
 assert.deepStrictEqual(
-  parse('<div id="test" checked></div>'), [{
+  parse('<div checked></div>'), [{
     type: NODE_TYPE_ELEMENT,
     name: 'div',
-    attributes: { id: "test", checked: 'checked' },
+    attributes: { checked: '' },
     children: []
   }],
-  'Boolean attributes parse correctly'
-)
+  'Attributes: Boolean attributes parse correctly'
+);
+
+[
+  '<div id="test"checked></div>',
+  "<div id='test'checked></div>"
+].forEach((testCase) => {
+  assert.deepStrictEqual(
+    parse(testCase), [{
+      type: NODE_TYPE_ELEMENT,
+      name: 'div',
+      attributes: { id: "test", checked: '' },
+      children: []
+    }],
+    'Attributes: Whitespace not required after quoted attributes'
+  );
+});
+
+[
+  '<div id="test"|checked></div>',
+  '<div id="test"| checked></div>',
+  '<div id="test" |checked></div>',
+  '<div id="test" | checked></div>',
+  "<div id='test'|checked></div>",
+  "<div id='test'| checked></div>",
+  "<div id='test' |checked></div>",
+  "<div id='test' | checked></div>",
+].forEach((testCase) => {
+  assert.throws(
+    ()=>parse(testCase), 
+    Error,
+    'Attributes: Invalid characters between attributes should throw'
+  );
+});
 
 assert.throws(
   ()=>parse('<div id="test" checked><div></div>'),

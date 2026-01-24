@@ -19,7 +19,7 @@ const RE_DOCTYPE = /<!doctype\s+([^\s>]+)\s*(.*?)>/gi;
 const RE_CONTAINER_ELEMENTS = /<([a-z][\w-]*)(\s[^>]*)?>([^<]*)<\/\1\s*>/g;
 
 // Attributes. Matches `name`, `name=value`, `name="value"`, `name='value'`, `x:name`, `data-prop-name`
-const RE_ATTR = /\s+([\w:-]+)(?:=(?:"([^"]*)"|'([^']*)'|([^\s"'>]+)))?(?=\s|$)/g;
+const RE_ATTR = /([A-Za-z_:][\w:.-]*)(?:=(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?/g;
 
 /**
  * Parses a string containing a fragment of well-formed SGML into a list of
@@ -144,12 +144,32 @@ export default (sgmlText, options = {}) => {
     }
 
     const node = createElement(name, {}, children);
-    attributes?.replace(RE_ATTR, (_, name, value) => {
-      node.attributes[name] = decode(value ?? name, namedEntityMap);
-    });
+    if (attributes) {
+      node.attributes = resolveAttributes(attributes);
+    }
+
     return placeholder(node);
   };
     
+
+  /**
+   * @param {string} attributes 
+   * @returns {<{name:string,value:string}>}
+   */
+  function resolveAttributes(attributes) {
+    const attrs = {};
+    // Replace each valid attribute with empty string; collect values
+    const cleaned = attributes.replace(RE_ATTR, (_, name, v1, v2, v3) => {
+      attrs[name] = decode(v1 ?? v2 ?? v3 ?? '', namedEntityMap);
+      return '';
+    });
+    // If anything other than whitespace remains, throw an error
+    if (cleaned.trim()) {
+      throwInputError();
+    }
+    return attrs;
+  };
+
 
   /**
    * @param {string} _ 
