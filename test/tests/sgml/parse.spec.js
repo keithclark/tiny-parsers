@@ -7,6 +7,7 @@ import {
   NODE_TYPE_DOCTYPE,
   parseSgml as parse
 } from '../../../src/main.js';
+import { NODE_TYPE_CDATA_SECTION, NODE_TYPE_PROCESSING_INSTRUCTION } from '../../../src/sgml/node.js';
 
 
 /* Text
@@ -71,7 +72,8 @@ assert.deepStrictEqual(
       type: NODE_TYPE_TEXT,
       value: ' after'
     }
-  ]
+  ],
+  'Void elements parse when between text nodes'
 );
 
 assert.deepStrictEqual(
@@ -444,4 +446,53 @@ assert.deepStrictEqual(
     value: '<style></style>'
   }],
   'Elements defined in comment text shouldn\'t be parsed'
+);
+
+
+/* Processing Instructions
+----------------------------------------------------------------------------- */
+
+assert.throws(
+  ()=>parse('<??>'),
+  TypeError,
+  "Processing Instructions: Must have a target to be valid"
+);
+
+assert.deepStrictEqual(
+  parse('<?xml?>'), [{
+    type: NODE_TYPE_PROCESSING_INSTRUCTION,
+    target: 'xml',
+    attributes: {}
+  }], 'Processing Instructions: Attribute must be optional'
+);
+
+assert.deepStrictEqual(
+  parse('<?xml version="1.0"?>'), [{
+    type: NODE_TYPE_PROCESSING_INSTRUCTION,
+    target: 'xml',
+    attributes: {
+      "version": "1.0"
+    }
+  }], 'Processing Instructions: Attributes should parse'
+);
+
+
+/* CDATA
+----------------------------------------------------------------------------- */
+
+
+assert.deepStrictEqual(
+  parse('<![CDATA[]]>'), [{
+    type: NODE_TYPE_CDATA_SECTION,
+    value: '',
+  }],
+  'CDATA: Empty contents are valid'
+);
+
+assert.deepStrictEqual(
+  parse('<![CDATA[&amp;]]>'), [{
+    type: NODE_TYPE_CDATA_SECTION,
+    value: '&amp;',
+  }],
+  'CDATA: Contents should not be entity-decoded'
 );

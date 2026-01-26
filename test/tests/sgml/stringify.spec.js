@@ -4,9 +4,11 @@ import {
   NODE_TYPE_COMMENT,
   NODE_TYPE_ELEMENT,
   NODE_TYPE_TEXT,
+  NODE_TYPE_CDATA_SECTION,
+  NODE_TYPE_DOCTYPE,
+  NODE_TYPE_PROCESSING_INSTRUCTION,
   stringifySgml as stringify
 } from '../../../src/main.js';
-import { NODE_TYPE_DOCTYPE } from '../../../src/sgml/node.js';
 
 
 /* Text
@@ -170,4 +172,51 @@ assert.strictEqual(
   }]),
   '<element name="&#38;"></element>',
   'Elements attributes should be entity-encoded'
+);
+
+
+/* Processing Instructions
+----------------------------------------------------------------------------- */
+
+assert.strictEqual(
+  stringify([{
+    type: NODE_TYPE_PROCESSING_INSTRUCTION,
+    target: 'pi',
+    attributes: {},
+  }]),
+  '<?pi?>',
+  'Processing Instructions: Should stringify'
+);
+
+assert.strictEqual(
+  stringify([{
+    type: NODE_TYPE_PROCESSING_INSTRUCTION,
+    target: 'pi',
+    attributes: {'name': 'value'},
+  }]),
+  '<?pi name="value"?>',
+  'Processing Instructions: Should stringify attributes'
+);
+
+
+/* CDATA
+----------------------------------------------------------------------------- */
+
+assert.strictEqual(
+  stringify([{
+    type: NODE_TYPE_CDATA_SECTION,
+    value: 'text',
+  }]),
+  '<![CDATA[text]]>',
+  'CDATA: Should stringify'
+);
+
+
+assert.strictEqual(
+  stringify([{
+    type: NODE_TYPE_CDATA_SECTION,
+    value: '&amp;',
+  }]),
+  '<![CDATA[&amp;]]>',
+  'CDATA: Should not encode entities'
 );

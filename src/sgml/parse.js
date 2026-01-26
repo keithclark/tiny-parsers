@@ -5,7 +5,9 @@ import {
   createElement,
   createText,
   createComment,
-  createDoctype
+  createDoctype,
+  createProcessingInstruction,
+  createCharacterData
 } from './node.js';
 
 /** @typedef {import("./types.js").Node} Node */
@@ -20,6 +22,12 @@ const RE_CONTAINER_ELEMENTS = /<([a-z][:\w-]*)(\s[^>]*)?>([^<]*)<\/\1\s*>/gi;
 
 // Self-closing elements `<TAG .../>`
 const RE_SELF_CLOSING_ELEMENTS = /<([a-z][:\w-]*)(\s[^>]*)?\s*\/>/gi;
+
+// Processing Instructions `<?PI ...?>`
+const RE_PROCESSING_INSTRUCTION = /<\?\s*([a-z_][\w.-]*)\s*([\s\S]*?)\s*\?>/gi;
+
+// Character data `<![CDATA[...]]>`
+const RE_CHARACTER_DATA = /<!\[CDATA\[([\s\S]*?)\]\]>/gi;
 
 // Attributes. Matches `name`, `name=value`, `name="value"`, `name='value'`, `x:name`, `data-prop-name`
 const RE_ATTR = /([A-Za-z_:][\w:.-]*)(?:=(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?/g;
@@ -191,6 +199,25 @@ export default (sgmlText, options = {}) => {
    * @param {string} attributes The raw attribute string
    * @returns {string} The element placeholder
    */
+  const processingInstructionReplacer = (_, name, attributes) => {
+    return placeholder(createProcessingInstruction(name, resolveAttributes(attributes)));
+  };
+
+  /**
+   * @param {string} _ 
+   * @param {string} [content] The raw content of the element
+   * @returns {string} The node placeholder
+   */
+  const cdataReplacer = (_, content ) => {
+    return placeholder(createCharacterData(content));
+  };
+
+  /**
+   * @param {string} _ 
+   * @param {string} name The element name
+   * @param {string} attributes The raw attribute string
+   * @returns {string} The element placeholder
+   */
   const doctypeReplacer = (_, name, legacyString) => {
     return placeholder(createDoctype(name, legacyString));
   };
@@ -208,7 +235,13 @@ export default (sgmlText, options = {}) => {
   }
 
   // Remove the doctype if we have one
+  sgmlText = sgmlText.replace(RE_CHARACTER_DATA, cdataReplacer);
+
+  // Remove the doctype if we have one
   sgmlText = sgmlText.replace(RE_DOCTYPE, doctypeReplacer);
+
+  // Remove the doctype if we have one
+  sgmlText = sgmlText.replace(RE_PROCESSING_INSTRUCTION, processingInstructionReplacer);
 
   // Now remove all self-closing tags as they will be the bottom-most nodes.
   // Do this BEFORE trying to remove void elements.

@@ -8,6 +8,19 @@
  */
 
 /**
+ * @typedef {Object} ProcessingInstruction
+ * @property {7} type
+ * @property {string} name The name of the processing instruction
+ * @property {AttributeList} attributes the processing instruction attributes
+ */
+
+/**
+ * @typedef {Object} CDATA
+ * @property {4} type
+ * @property {string} value The raw character data
+ */
+
+/**
  * @typedef {Object} Text
  * @property {2} type
  * @property {string} value The text content of the node
@@ -15,19 +28,19 @@
 
 /**
  * @typedef {Object} Comment
- * @property {3} type
+ * @property {8} type
  * @property {string} value The comment text
  */
 
 /**
  * @typedef {Object} Doctype
- * @property {4} type
+ * @property {10} type
  * @property {string} name The document type name
  * @property {string} legacyString unparsed legacy information
  */
 
 /**
- * @typedef {Element|Text|Comment|Doctype} Node
+ * @typedef {Element|Text|Comment|Doctype|ProcessingInstruction|CDATA} Node
  */
 
 /**
