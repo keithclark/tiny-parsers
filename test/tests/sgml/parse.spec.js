@@ -7,6 +7,7 @@ import {
   NODE_TYPE_DOCTYPE,
   parseSgml as parse
 } from '../../../src/main.js';
+import { NODE_TYPE_CDATA_SECTION, NODE_TYPE_PROCESSING_INSTRUCTION } from '../../../src/sgml/node.js';
 
 
 /* Text
@@ -52,8 +53,6 @@ assert.deepStrictEqual(
 );
 
 
-
-
 /* Void elements
 ----------------------------------------------------------------------------- */
 
@@ -73,7 +72,8 @@ assert.deepStrictEqual(
       type: NODE_TYPE_TEXT,
       value: ' after'
     }
-  ]
+  ],
+  'Void elements parse when between text nodes'
 );
 
 assert.deepStrictEqual(
@@ -87,16 +87,6 @@ assert.deepStrictEqual(
 );
 
 
-assert.deepStrictEqual(
-  parse('<void />', { voidElements: ['void'] }), [{
-    type: NODE_TYPE_ELEMENT,
-    name: 'void',
-    attributes: {},
-    children: []
-  }],
-  'Void elements can also be self-closing'
-);
-
 /* Block elements
 ----------------------------------------------------------------------------- */
 
@@ -107,8 +97,31 @@ assert.deepStrictEqual(
     attributes: {},
     children: []
   }],
-  'Empty block elements parse correctly'
+  'Block Elements: Empty block elements parse correctly'
 );
+
+
+[
+  '<element></element>',
+  "<element ></element>",
+  "<element\t></element>",
+  "<element   ></element>",
+  "<element\t\t></element>",
+  "<element\n></element>",
+  "<element\n\n></element>",
+  "<element\n \n \t\n></element>",
+].forEach((testCase) => {
+  assert.deepStrictEqual(
+    parse(testCase), [{
+      type: NODE_TYPE_ELEMENT,
+      name: 'element',
+      attributes: {},
+      children: []
+    }],
+    'Block Elements: Bare element trailing whitespace is valid'
+  );
+});
+
 
 assert.deepStrictEqual(
   parse('<div>Test</div>'), [
@@ -122,7 +135,7 @@ assert.deepStrictEqual(
       }]
     }
   ],
-  'Block elements with child nodes parse correctly'
+  'Block Elements: Child nodes parse correctly'
 );
 
 assert.deepStrictEqual(
@@ -150,7 +163,55 @@ assert.deepStrictEqual(
       }
     ]
   }],
-  'Nested elements parse correctly'
+  'Block Elements: Nested elements parse correctly'
+);
+
+
+/* Self-closing elements
+----------------------------------------------------------------------------- */
+
+assert.deepStrictEqual(
+  parse('<div />'), [{
+    type: NODE_TYPE_ELEMENT,
+    name: 'div',
+    attributes: {},
+    children: []
+  }],
+  'Self-closing Elements: Empty elements parse correctly'
+);
+
+
+[
+  '<element/>',
+  "<element />",
+  "<element\t/>",
+  "<element   />",
+  "<element\t\t/>",
+  "<element\n/>",
+  "<element\n\n/>",
+  "<element\n \n \t\n/>",
+].forEach((testCase) => {
+  assert.deepStrictEqual(
+    parse(testCase), [{
+      type: NODE_TYPE_ELEMENT,
+      name: 'element',
+      attributes: {},
+      children: []
+    }],
+    'Self-closing Elements: Bare element trailing whitespace is valid'
+  );
+});
+
+assert.deepStrictEqual(
+  parse('<element url="https://"/>'), [{
+    type: NODE_TYPE_ELEMENT,
+    name: 'element',
+    attributes: {
+      url: 'https://'
+    },
+    children: []
+  }],
+  'Self-closing Elements: with attributes including `/` should parse'
 );
 
 
@@ -195,17 +256,106 @@ assert.deepStrictEqual(
     children: []
   }],
   'Empty block elements with attributes parse correctly'
-)
+);
+
+
+
+[
+  '<element id="test" ></element>',
+  '<element  id="test"  ></element>',
+  '<element\nid="test"\n></element>',
+  '<element\n\nid="test"\n\n></element>',
+  '<element\tid="test"\t></element>',
+  '<element\t\tid="test"\t\t></element>'
+].forEach((testCase) => {
+  assert.deepStrictEqual(
+    parse(testCase), [{
+      type: NODE_TYPE_ELEMENT,
+      name: 'element',
+      attributes: { id: 'test' },
+      children: []
+    }],
+    'Attributes: Whitespace around attributes should be ignored'
+  );
+});
+
+
+[
+  '<element id="test" name="test" ></element>',
+  '<element  id="test"  name="test"  ></element>',
+  '<element\nid="test"\nname="test"\n></element>',
+  '<element\n\nid="test"\n\nname="test"\n\n></element>',
+  '<element\tid="test"\tname="test"\t></element>',
+  '<element\t\tid="test"\t\tname="test"\t\t></element>',
+].forEach((testCase) => {
+  assert.deepStrictEqual(
+    parse(testCase), [{
+      type: NODE_TYPE_ELEMENT,
+      name: 'element',
+      attributes: { id: 'test', name: 'test' },
+      children: []
+    }],
+    'Attributes: Whitespace around attributes should be ignored'
+  );
+});
+
+
+[
+  '<div id=""></div>',
+  "<div id=''></div>"
+].forEach((testCase) => {
+  assert.deepStrictEqual(
+    parse(testCase), [{
+      type: NODE_TYPE_ELEMENT,
+      name: 'div',
+      attributes: { id: "" },
+      children: []
+    }],
+    'Attributes: Single or double quoted values are valid'
+  )
+});
 
 assert.deepStrictEqual(
-  parse('<div id="test" checked></div>'), [{
+  parse('<div checked></div>'), [{
     type: NODE_TYPE_ELEMENT,
     name: 'div',
-    attributes: { id: "test", checked: 'checked' },
+    attributes: { checked: '' },
     children: []
   }],
-  'Boolean attributes parse correctly'
-)
+  'Attributes: Boolean attributes parse correctly'
+);
+
+[
+  '<div id="test"checked></div>',
+  "<div id='test'checked></div>"
+].forEach((testCase) => {
+  assert.deepStrictEqual(
+    parse(testCase), [{
+      type: NODE_TYPE_ELEMENT,
+      name: 'div',
+      attributes: { id: "test", checked: '' },
+      children: []
+    }],
+    'Attributes: Whitespace not required after quoted attributes'
+  );
+});
+
+[
+  '<div id="test"|checked></div>',
+  '<div id="test"| checked></div>',
+  '<div id="test" |checked></div>',
+  '<div id="test" | checked></div>',
+  "<div id='test'|checked></div>",
+  "<div id='test'| checked></div>",
+  "<div id='test' |checked></div>",
+  "<div id='test' | checked></div>",
+].forEach((testCase) => {
+  assert.throws(
+    ()=>parse(testCase), 
+    Error,
+    'Attributes: Invalid characters between attributes should throw'
+  );
+});
 
 assert.throws(
   ()=>parse('<div id="test" checked><div></div>'),
@@ -296,4 +446,53 @@ assert.deepStrictEqual(
     value: '<style></style>'
   }],
   'Elements defined in comment text shouldn\'t be parsed'
+);
+
+
+/* Processing Instructions
+----------------------------------------------------------------------------- */
+
+assert.throws(
+  ()=>parse('<??>'),
+  TypeError,
+  "Processing Instructions: Must have a target to be valid"
+);
+
+assert.deepStrictEqual(
+  parse('<?xml?>'), [{
+    type: NODE_TYPE_PROCESSING_INSTRUCTION,
+    target: 'xml',
+    attributes: {}
+  }], 'Processing Instructions: Attribute must be optional'
+);
+
+assert.deepStrictEqual(
+  parse('<?xml version="1.0"?>'), [{
+    type: NODE_TYPE_PROCESSING_INSTRUCTION,
+    target: 'xml',
+    attributes: {
+      "version": "1.0"
+    }
+  }], 'Processing Instructions: Attributes should parse'
+);
+
+
+/* CDATA
+----------------------------------------------------------------------------- */
+
+
+assert.deepStrictEqual(
+  parse('<![CDATA[]]>'), [{
+    type: NODE_TYPE_CDATA_SECTION,
+    value: '',
+  }],
+  'CDATA: Empty contents are valid'
+);
+
+assert.deepStrictEqual(
+  parse('<![CDATA[&amp;]]>'), [{
+    type: NODE_TYPE_CDATA_SECTION,
+    value: '&amp;',
+  }],
+  'CDATA: Contents should not be entity-decoded'
 );

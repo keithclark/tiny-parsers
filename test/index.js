@@ -6,6 +6,7 @@ import { opendir } from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path'
 import { registerHooks } from 'node:module';
+import { AssertionError } from 'node:assert/strict';
 
 const SPEC_FILE_SUFFIX = '.spec.js';
 
@@ -19,6 +20,7 @@ const testsUrl = new URL(testsPath, 'file://');
 const results = {
   count: 0,
   passes: 0,
+  failures: 0,
   errors: 0
 };
 
@@ -64,7 +66,7 @@ process.nextTick(async () => {
       }
     }
   }
-  console.log(`\n${results.passes} passes, ${results.errors} errors in ${results.count} tests.`);
+  console.log(`\n${results.passes} passes, ${results.failures} failures and ${results.errors} exceptions in ${results.count} tests.`);
 });
 
 export default new Proxy(assert, {
@@ -81,11 +83,16 @@ export default new Proxy(assert, {
         console.log(`‧ \x1b[32m${message.padEnd(85,' ')} \x1b[30m(${(performance.now()-t).toFixed(3)}ms)\x1b[0m`);
         results.passes++;
       } catch (e) {
-        console.log(`‧ \x1b[31m${message}`);
-        console.log(`  | ERROR`);
-        console.log(`  | Received: ${JSON.stringify(e.actual)}`);
-        console.log(`  | Expected: ${JSON.stringify(e.expected)}\x1b[0m`);
-        results.errors++;
+        if (e instanceof AssertionError) {
+          console.log(`‧ \x1b[31m${message.padEnd(85,' ')} [FAIL]`);
+          console.log(`  | Received: ${JSON.stringify(e.actual)}`);
+          console.log(`  | Expected: ${JSON.stringify(e.expected)}\x1b[0m`);
+          results.failures++;
+        } else {
+          results.errors++;
+          console.log(`‧ \x1b[31m${message.padEnd(85,' ')} [ERROR]`);
+          console.log(e)
+        }
       }
     }
   }
